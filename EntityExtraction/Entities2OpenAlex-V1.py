@@ -52,18 +52,16 @@ import pprint
 #File details:
 
 #directory with pdfs:
-directory = '/home/riefler/Daten/0/Software/Python/Text-Verarbeitung/OpenAlex/'
-#directory = '/home/riefler/Daten/0/Wissenschaft/Projekte/Computing/Patents4Science/WorkProgram/9-Evaluation/Literature/Merge-Lit/PDFs/'
+directory = '<working directory with pdfs>'
 
 # Begriffe in Spreadsheet mit AM-Ontologie:
-table_input_dir = '/home/riefler/Daten/0/Software/Python/Text-Verarbeitung/spaCy/AM-Implementierung-Juliana/source/AM_EntityTypes-2025-06-26+PMDco3.0.0-FullEntitiesList-V1.ods'
+table_input_dir = 'AM_EntityTypes-2025-06-26+PMDco3.0.0-FullEntitiesList-V1.ods'
 
 # AM Ontology Entity_Types Definitionen:
-definitions_input_dir = '/home/riefler/Daten/0/Software/Python/Text-Verarbeitung/spaCy/AM-Implementierung-Juliana/source/AM_EntityTypes-2025-08-01+PMDco3.0.0-V1.ods'
+definitions_input_dir = 'AM_EntityTypes-2025-08-01+PMDco3.0.0-V1.ods'
 
 #output file with resulting entities+entity_types:
 fout="Test-Result.json"
-#fout="AM-LiteratureData.json"
 ################################################################################################
 
 
