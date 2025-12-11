@@ -54,10 +54,10 @@ import pprint
 #directory with pdfs:
 directory = '<working directory with pdfs>'
 
-# Begriffe in Spreadsheet mit AM-Ontologie:
+#terms in a spreadsheet with AM-Ontologie:
 table_input_dir = 'AM_EntityTypes-2025-06-26+PMDco3.0.0-FullEntitiesList-V1.ods'
 
-# AM Ontology Entity_Types Definitionen:
+#AM Ontology Entity_Types definitions:
 definitions_input_dir = 'AM_EntityTypes-2025-08-01+PMDco3.0.0-V1.ods'
 
 #output file with resulting entities+entity_types:
@@ -86,8 +86,7 @@ nlp.remove_pipe("ner")
 
 
 ################################################################################################
-# Klassen aus Tabelle ziehen
-#df = read_ods(table_input_dir, 1, columns=['entity','entity_type','Thing','SubClass1','SubClass2'])
+#Get classes from a table:
 df = read_ods(table_input_dir, 1, columns=['entity','entity_type','Thing','SubClass1','SubClass2','SubClass3','SubClass4','SubClass5','SubClass6','SubClass7','SubClass8','SubClass9'])
 ################################################################################################
 
@@ -115,7 +114,7 @@ def get_open_alex_ids(dois):
 
 
 ################################################################################################
-# Aus AMOntology+ProtegeInput
+#From AMOntology+ProtegeInput
 def to_camel_case(text):
     s = text.replace("-", " ").replace("_", " ").replace("'", "")
     s = s.split()
@@ -129,7 +128,7 @@ def to_camel_case(text):
 
 
 ################################################################################################
-# Um Maps zu verwenden, sollen alle Begriffe vereinheitlicht werden.
+#To use Maps, all Terms should be syntactically unified:
 def keytify(text):
     text = text.strip().lower()
     text = " ".join(text.split())
@@ -158,12 +157,8 @@ for _, row in df.iterrows():
     subclass7 = to_camel_case(row["SubClass7"]) if row["SubClass7"] else None
     subclass8 = to_camel_case(row["SubClass8"]) if row["SubClass8"] else None
     subclass9 = to_camel_case(row["SubClass9"]) if row["SubClass9"] else None
-    #if "SubClass9" in df.columns: 
-    #  subclass9 = to_camel_case(row["SubClass9"])
-    #else:
-    #  subclass9 = None
     entityInformationMap[keytify(raw)] = [entitytype,entity,subclass1,subclass2,subclass3,subclass4,subclass5,subclass6,subclass7,subclass8,subclass9,thing, None]
-    # Mehrere Rechtschreibungen ermöglichen
+    #Enable different spellings:
     nlp.tokenizer.add_special_case(raw, [{ORTH: raw}])
     nlp.tokenizer.add_special_case(raw.lower(), [{ORTH: raw.lower()}])
     nlp.tokenizer.add_special_case(raw.title(), [{ORTH: raw.title()}])
@@ -175,19 +170,19 @@ for _, row in df.iterrows():
 
 
 ################################################################################################
-# Definitions and Labels
+#Definitions and labels
 df1 = read_ods(definitions_input_dir, 1,
                columns=['entities','entity_types','Definition','Thing','SubClass1','SubClass2',
-                        'SubClass3','SubClass4','SubClass5,SubClass6','SubClass7','SubClass8','SubClass9'])  # Einlesen aller Informationen der Definitionen
+                        'SubClass3','SubClass4','SubClass5,SubClass6','SubClass7','SubClass8','SubClass9'])  #read all information about definitions
 entity_definition_map = {}
-for _, row in df1.iterrows():  # Speichern aller Informationen in einer Map
+for _, row in df1.iterrows():  #save all information in a map
     raw = row["entities"] if row["entities"] else None
     #print(raw)
     definition = row["Definition"] if row["Definition"] else None
     if raw:
       entity_definition_map[keytify(raw)] = [raw, definition]
 
-ruler.add_patterns(patterns)  # Patterns dem Ruler hinzufügen, die die jeweiligen Entitäten definieren
+ruler.add_patterns(patterns)  #Add pattern to the ruler which defines the entities
 ################################################################################################
 
 
@@ -196,26 +191,26 @@ ruler.add_patterns(patterns)  # Patterns dem Ruler hinzufügen, die die jeweilig
 
 ################################################################################################
 #routines for unit recognition
-RANGE_SEP = r'(?:–|—|-|to|and)' # Alles, was einen Range angeben kann
-NUM = r'(?:\d+(?:[.,]\d+)?(?:[eE][+-]?\d+)?)' # Zahl kann 20 oder 20,0 oder 20.0 oder 2.0e+0 sein
-UNIT = r'(?:[A-Za-z°µ/%]+)' # Alle möglichen Buchtaben, paar Zeichen, vllt erweitern
+RANGE_SEP = r'(?:–|—|-|to|and)' # everything a range can give
+NUM = r'(?:\d+(?:[.,]\d+)?(?:[eE][+-]?\d+)?)' # number could be 20 or 20,0 or 20.0 or 2.0e+0
+UNIT = r'(?:[A-Za-z°µ/%]+)' # all letters
 
-## https://regexr.com/ Zum Erstellen der regulären Ausdrücke
+## https://regexr.com/ for the construction of regular expressions
 #def normalize_units(s):
-#    # Für Erkennung von Gradeinheiten
+#    # for detection of degree units
 #    s = s.replace('\u25E6', '\u00B0')  # Formatierung für °
 #    s = re.sub(r'\bdeg(?:ree)?\s*[cC]\b', '°C', s)  # deg C zu °C
 #    s = re.sub(r'(?<=\d)\s*[cC]\b', ' °C', s)  # 500 C zu 500 °C
-#    # Versichern, dass Kelvin statt KibiByte erkannt wird
+#    # be sure that Kelvin is been detected instead of KibiByte
 #    s = re.sub(r'(?<=\d)\s*[Kk]\b(?![iI]?B)', ' K', s)
-#    # Exponenten wiederherstellen
+#    # restore exponents
 #    s = re.sub(r'\bm3\b', 'm³', s)
 #    s = re.sub(r'\bcm3\b', 'cm³', s)
 #    s = re.sub(r'\bmm2\b', 'mm²', s)
-#    # Mikrosymbol korrekt erkennen
+#    # correct detection of the micron symbol
 #    s = s.replace('\u03BC', '\u00B5')
 #    s = re.sub(r'\bmicron(s)?\b', 'µm', s, flags=re.I)
-#    # Temperatur Ranges korrekt erkennen lassen
+#    # correct detection of temperatur ranges
 #    s = re.sub(r'(\d+(?:\.\d+)?)\s*[–—-]\s*(\d+(?:\.\d+)?)\s*°C',r'\1 °C to \2 °C', s)
 #    return s
 ################################################################################################
@@ -268,14 +263,14 @@ for f in files:
       for line in spacy_doc.sents:
         ents = []  # Entitätenliste
         #print(line)
-        if line.ents:  # Falls Entitäten gefunden wurden
-          for i, ent1 in enumerate(line.ents):  # Iterieren durch die Entitätentypen
+        if line.ents:  # if entities are found
+          for i, ent1 in enumerate(line.ents):  # iterate through entity_types
             #get entity:
-            e1 = entityInformationMap.get(keytify(ent1.text))[1]  # Korrekte Schreibweise aus Tabelle
+            e1 = entityInformationMap.get(keytify(ent1.text))[1]  # use correct spelling from table
             print(e1)
             #
             #get entity type:
-            et1 = entityInformationMap.get(keytify(ent1.text))[0]  # Korrekte Schreibweise aus Tabelle
+            et1 = entityInformationMap.get(keytify(ent1.text))[0]  # use correct spelling from table
             #Save in list:
             Entities.append(e1)
             EntityTypes.append(et1)
